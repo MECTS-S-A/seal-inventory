@@ -1,14 +1,14 @@
 """FastAPI application bootstrap."""
 
 from __future__ import annotations
-
 import os
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-from seal_inventory.api.routes import v1_router
-from seal_inventory.api.auth_routes import auth_router
-from seal_inventory.api.netseal_routes import router as netseal_router
+from seal_inventory.api.seals.seal_routes import v1_router
+from seal_inventory.api.auth.auth_routes import auth_router
+from seal_inventory.api.netseal.netseal_routes import router as netseal_router
 
 
 def validate_env() -> None:
@@ -37,7 +37,16 @@ app = FastAPI(
     description="API service for retrieving existing records from Microsoft SQL Server.",
 )
 
-# app.include_router(router)
+# Routers
 app.include_router(v1_router)
 app.include_router(auth_router)
 app.include_router(netseal_router)
+
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)

@@ -13,7 +13,7 @@ from seal_inventory.schemas.seal import (
 from seal_inventory.services.seal_service import SealService
 
 router = APIRouter()
-v1_router  = APIRouter(prefix="/api/v1")
+v1_router  = APIRouter(prefix="/api/v1/seals", tags=["seal"])
 service = SealService()
 
 def get_service() -> SealService:

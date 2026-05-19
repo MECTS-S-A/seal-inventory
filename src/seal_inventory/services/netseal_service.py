@@ -1,4 +1,5 @@
 from seal_inventory.repositories.netseal_repository import NetsealRepository
+from typing import List
 
 
 class NetsealService:
@@ -40,7 +41,7 @@ class NetsealService:
 
     def transfer_netseals(
             self,
-            netseal_ids: list[int],
+            netseal_ids: List[int],
             site: str,
             location: str,
             user: str,

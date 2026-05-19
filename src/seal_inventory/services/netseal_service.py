@@ -37,3 +37,20 @@ class NetsealService:
             "compensation": stats.get("compensation", 0),
             "maintenance": stats.get("maintenance", 0),
         }
+
+    def transfer_netseals(
+            self,
+            netseal_ids: list[int],
+            site: str,
+            location: str,
+            user: str,
+    ):
+        if not netseal_ids:
+            raise ValueError("No net seals selected")
+
+        return self.repo.transfer(
+            netseal_ids=netseal_ids,
+            site=site,
+            location=location,
+            updated_by=user,
+        )

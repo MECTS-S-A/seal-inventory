@@ -106,3 +106,37 @@ class NetsealRepository:
 
             columns = [col[0] for col in cursor.description]
             return dict(zip(columns, row))
+
+    def transfer(
+            self,
+            netseal_ids: list[int],
+            site: str,
+            location: str,
+            updated_by: str,
+    ):
+        placeholders = ",".join("?" for _ in netseal_ids)
+
+        query = f"""
+            UPDATE asset.net_inventory
+            SET
+                OWNER_NAME = ?,
+                OWNER_REGION = ?,
+                NET_STATUS = 'Em Transferencia',
+                UPDATED = GETDATE(),
+                UPDATED_BY = ?
+            WHERE ID IN ({placeholders})
+        """
+
+        params = [
+            site,
+            location,
+            updated_by,
+            *netseal_ids,
+        ]
+
+        with get_inventory_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(query, params)
+            conn.commit()
+
+            return cursor.rowcount

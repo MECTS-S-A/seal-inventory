@@ -37,3 +37,8 @@ class NetsealStatsResponse(BaseModel):
     to_change: int
     compensation: int
     maintenance: int
+
+class NetsealTransferRequest(BaseModel):
+    netseal_ids: list[int]
+    site: str
+    location: str

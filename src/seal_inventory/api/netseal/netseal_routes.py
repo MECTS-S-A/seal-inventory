@@ -53,21 +53,13 @@ def transfer_netseals(
         user=Depends(get_current_user),
         service: NetsealService = Depends(get_service),
 ):
-    try:
-        updated = service.transfer_netseals(
-            netseal_ids=payload.netseal_ids,
-            site=payload.site,
-            location=payload.location,
-            user=user,
-        )
+    updated = service.transfer_netseals(
+        payload,
+        user,
+    )
 
-        return {
-            "message": "Transfer completed successfully",
-            "updated_records": updated,
-        }
-
-    except ValueError as exc:
-        raise HTTPException(
-            status_code=400,
-            detail=str(exc),
-        )
+    return {
+        "success": True,
+        "updated_records": updated,
+        "status": "Em Transferencia",
+    }

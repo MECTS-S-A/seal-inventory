@@ -40,5 +40,6 @@ class NetsealStatsResponse(BaseModel):
 
 class NetsealTransferRequest(BaseModel):
     netseal_ids: list[int]
-    site: str
-    location: str
+    destination_site: str
+    destination_province: str
+    destination_location: str

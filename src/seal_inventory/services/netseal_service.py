@@ -41,17 +41,13 @@ class NetsealService:
 
     def transfer_netseals(
             self,
-            netseal_ids: List[int],
-            site: str,
-            location: str,
-            user: str,
+            payload,
+            user,
     ):
-        if not netseal_ids:
-            raise ValueError("No net seals selected")
-
         return self.repo.transfer(
-            netseal_ids=netseal_ids,
-            site=site,
-            location=location,
+            net_ids=payload.net_ids,
+            destination_site=payload.destination_site,
+            destination_province=payload.destination_province,
+            destination_location=payload.destination_location,
             updated_by=user,
         )

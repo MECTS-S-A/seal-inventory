@@ -109,17 +109,19 @@ class NetsealRepository:
 
     def transfer(
             self,
-            netseal_ids: list[int],
-            site: str,
-            location: str,
+            net_ids: list[int],
+            destination_site: str,
+            destination_province: str,
+            destination_location: str,
             updated_by: str,
     ):
-        placeholders = ",".join("?" for _ in netseal_ids)
+        placeholders = ",".join("?" for _ in net_ids)
 
         query = f"""
             UPDATE asset.net_inventory
             SET
                 OWNER_NAME = ?,
+                OWNER_PROVINCE = ?,
                 OWNER_REGION = ?,
                 NET_STATUS = 'Em Transferencia',
                 UPDATED = GETDATE(),
@@ -128,15 +130,18 @@ class NetsealRepository:
         """
 
         params = [
-            site,
-            location,
+            destination_site,
+            destination_province,
+            destination_location,
             updated_by,
-            *netseal_ids,
+            *net_ids,
         ]
 
         with get_inventory_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute(query, params)
+
+            cursor.execute(query, *params)
+
             conn.commit()
 
             return cursor.rowcount

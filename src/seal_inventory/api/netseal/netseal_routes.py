@@ -49,7 +49,7 @@ def get_stats(service=Depends(get_service)):
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to fetch netseal stats")
 
-@router.post("/")
+@router.post("/tranfer")
 async def create_transfer(
         payload: TransferCreateRequest,
         user=Depends(get_current_user),

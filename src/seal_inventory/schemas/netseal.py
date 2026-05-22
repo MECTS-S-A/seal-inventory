@@ -38,8 +38,24 @@ class NetsealStatsResponse(BaseModel):
     compensation: int
     maintenance: int
 
-class NetsealTransferRequest(BaseModel):
-    netseal_ids: list[int]
-    destination_site: str
-    destination_province: str
+class TransferCreateRequest(BaseModel):
+    net_ids: list[str]
+
+    origin_site_id: str
+    origin_location: str
+
+    destination_site_id: str
     destination_location: str
+
+
+class TransferConfirmRequest(BaseModel):
+    transfer_id: int
+
+
+class TransferRejectRequest(BaseModel):
+    reason: str
+
+
+class TransferResponse(BaseModel):
+    id: int
+    status: str

@@ -1,5 +1,7 @@
 from seal_inventory.repositories.netseal_repository import NetsealRepository
 from typing import List
+from seal_inventory.websocket_manager import manager
+
 
 
 class NetsealService:
@@ -39,15 +41,47 @@ class NetsealService:
             "maintenance": stats.get("maintenance", 0),
         }
 
-    def transfer_netseals(
+    async def create_transfer(
             self,
             payload,
-            user,
+            sender_username,
     ):
-        return self.repo.transfer(
-            net_ids=payload.net_ids,
-            destination_site=payload.destination_site,
-            destination_province=payload.destination_province,
-            destination_location=payload.destination_location,
-            updated_by=user,
+        transfer_id = self.repo.create_transfer(
+            payload,
+            sender_username,
+        )
+
+        await manager.send_to_site(
+            payload.destination_site_id,
+            {
+                "type": "TRANSFER_INCOMING",
+                "transfer_id": transfer_id,
+                "net_ids": payload.net_ids,
+                "sender": sender_username,
+                "from": payload.origin_site_id,
+            },
+        )
+
+        return transfer_id
+
+    async def confirm_transfer(
+            self,
+            transfer_id,
+            receiver_username,
+    ):
+        self.repo.confirm_transfer(
+            transfer_id,
+            receiver_username,
+        )
+
+    async def reject_transfer(
+            self,
+            transfer_id,
+            receiver_username,
+            reason,
+    ):
+        self.repo.reject_transfer(
+            transfer_id,
+            receiver_username,
+            reason,
         )

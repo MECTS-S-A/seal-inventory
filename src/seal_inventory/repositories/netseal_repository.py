@@ -107,41 +107,101 @@ class NetsealRepository:
             columns = [col[0] for col in cursor.description]
             return dict(zip(columns, row))
 
-    def transfer(
+    def create_transfer(
             self,
-            net_ids: list[int],
-            destination_site: str,
-            destination_province: str,
-            destination_location: str,
-            updated_by: str,
+            payload,
+            sender_username: str,
     ):
-        placeholders = ",".join("?" for _ in net_ids)
-
-        query = f"""
-            UPDATE asset.net_inventory
-            SET
-                OWNER_NAME = ?,
-                OWNER_PROVINCE = ?,
-                OWNER_REGION = ?,
-                NET_STATUS = 'Em Transferencia',
-                UPDATED = GETDATE(),
-                UPDATED_BY = ?
-            WHERE ID IN ({placeholders})
-        """
-
-        params = [
-            destination_site,
-            destination_province,
-            destination_location,
-            updated_by,
-            *net_ids,
-        ]
+        query = """
+                INSERT INTO asset.transfers (
+                    NET_IDS,
+                    ORIGIN_SITE_ID,
+                    ORIGIN_LOCATION,
+                    DESTINATION_SITE_ID,
+                    DESTINATION_LOCATION,
+                    SENDER_USERNAME,
+                    STATUS,
+                    CREATED,
+                    UPDATED
+                )
+                    OUTPUT INSERTED.ID
+                VALUES (
+                    ?, ?, ?, ?, ?, ?,
+                    'pending',
+                    GETDATE(),
+                    GETDATE()
+                    ) \
+                """
 
         with get_inventory_connection() as conn:
             cursor = conn.cursor()
 
-            cursor.execute(query, *params)
+            cursor.execute(
+                query,
+                ",".join(payload.net_ids),
+                payload.origin_site_id,
+                payload.origin_location,
+                payload.destination_site_id,
+                payload.destination_location,
+                sender_username,
+            )
+
+            transfer_id = cursor.fetchone()[0]
 
             conn.commit()
 
-            return cursor.rowcount
+            return transfer_id
+
+
+    def confirm_transfer(
+            self,
+            transfer_id: int,
+            receiver_username: str,
+    ):
+        query = """
+                UPDATE asset.transfers
+                SET
+                    STATUS='confirmed',
+                    RECEIVER_USERNAME=?,
+                    UPDATED=GETDATE()
+                WHERE ID=? \
+                """
+
+        with get_inventory_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                query,
+                receiver_username,
+                transfer_id,
+            )
+
+            conn.commit()
+
+    def reject_transfer(
+            self,
+            transfer_id: int,
+            receiver_username: str,
+            reason: str,
+    ):
+        query = """
+                UPDATE asset.transfers
+                SET
+                    STATUS='rejected',
+                    RECEIVER_USERNAME=?,
+                    REASON=?,
+                    UPDATED=GETDATE()
+                WHERE ID=? \
+                """
+
+        with get_inventory_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute(
+                query,
+                receiver_username,
+                reason,
+                transfer_id,
+            )
+
+            conn.commit()

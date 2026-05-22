@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from seal_inventory.api.seals.seal_routes import v1_router
 from seal_inventory.api.auth.auth_routes import auth_router
 from seal_inventory.api.netseal.netseal_routes import router as netseal_router
+from seal_inventory.api.websocket_routes import router as websocket_router
 
 
 def validate_env() -> None:
@@ -41,6 +42,7 @@ app = FastAPI(
 app.include_router(v1_router)
 app.include_router(auth_router)
 app.include_router(netseal_router)
+app.include_router(websocket_router)
 
 # CORS
 app.add_middleware(

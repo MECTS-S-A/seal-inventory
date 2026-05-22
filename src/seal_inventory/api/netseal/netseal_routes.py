@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
+
+from seal_inventory.api.seals.seal_routes import service
 from seal_inventory.services.netseal_service import NetsealService
-from seal_inventory.schemas.netseal import NetsealCreate, NetsealUpdate
+from seal_inventory.schemas.netseal import NetsealCreate, NetsealUpdate, TransferRejectRequest, TransferCreateRequest
 from seal_inventory.core.dependencies import get_current_user
-from seal_inventory.schemas.netseal import NetsealStatsResponse, NetsealTransferRequest
+from seal_inventory.schemas.netseal import NetsealStatsResponse
 
 
 router = APIRouter(prefix="/api/v1/netseals", tags=["netseal"])
@@ -47,19 +49,45 @@ def get_stats(service=Depends(get_service)):
     except Exception:
         raise HTTPException(status_code=500, detail="Failed to fetch netseal stats")
 
-@router.post("/transfer")
-def transfer_netseals(
-        payload: NetsealTransferRequest,
+@router.post("/")
+async def create_transfer(
+        payload: TransferCreateRequest,
         user=Depends(get_current_user),
-        service: NetsealService = Depends(get_service),
 ):
-    updated = service.transfer_netseals(
+    transfer_id = await service.create_transfer(
         payload,
         user,
     )
 
     return {
-        "success": True,
-        "updated_records": updated,
-        "status": "Em Transferencia",
+        "id": transfer_id,
+        "status": "pending",
     }
+
+
+@router.patch("/{transfer_id}/confirm")
+async def confirm_transfer(
+        transfer_id: int,
+        user=Depends(get_current_user),
+):
+    await service.confirm_transfer(
+        transfer_id,
+        user,
+    )
+
+    return {"success": True}
+
+
+@router.patch("/{transfer_id}/reject")
+async def reject_transfer(
+        transfer_id: int,
+        payload: TransferRejectRequest,
+        user=Depends(get_current_user),
+):
+    await service.reject_transfer(
+        transfer_id,
+        user,
+        payload.reason,
+    )
+
+    return {"success": True}

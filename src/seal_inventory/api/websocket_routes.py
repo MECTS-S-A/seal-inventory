@@ -7,13 +7,13 @@ from seal_inventory.websocket_manager import manager
 router = APIRouter()
 
 
-@router.websocket("/ws/{site_id}")
+@router.websocket("/ws/{owner_id}")
 async def websocket_endpoint(
         websocket: WebSocket,
-        site_id: str,
+        owner_id: str,
 ):
     await manager.connect(
-        site_id,
+        owner_id,
         websocket,
     )
 
@@ -23,6 +23,6 @@ async def websocket_endpoint(
 
     except WebSocketDisconnect:
         manager.disconnect(
-            site_id,
+            owner_id,
             websocket,
         )

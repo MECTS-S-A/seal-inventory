@@ -1,41 +1,51 @@
 from collections import defaultdict
-
 from fastapi import WebSocket
 
 
 class ConnectionManager:
 
     def __init__(self):
-        self.connections = defaultdict(list)
+        self.active_connections: dict[str, list[WebSocket]] = defaultdict(list)
 
     async def connect(
             self,
-            site_id: str,
+            owner_id: str,
             websocket: WebSocket,
     ):
         await websocket.accept()
 
-        self.connections[site_id].append(
+        self.active_connections[owner_id].append(
             websocket
         )
 
     def disconnect(
             self,
-            site_id: str,
+            owner_id: str,
             websocket: WebSocket,
     ):
-        if websocket in self.connections[site_id]:
-            self.connections[site_id].remove(
+        if owner_id in self.active_connections:
+            self.active_connections[owner_id].remove(
                 websocket
             )
 
-    async def send_to_site(
+    async def send_to_owner(
             self,
-            site_id,
-            message,
+            owner_id: str,
+            payload: dict,
     ):
-        for ws in self.connections.get(site_id, []):
-            await ws.send_json(message)
+        if owner_id not in self.active_connections:
+            return
+
+        dead_connections = []
+
+        for ws in self.active_connections[owner_id]:
+            try:
+                await ws.send_json(payload)
+            except Exception:
+                dead_connections.append(ws)
+
+        for ws in dead_connections:
+            self.disconnect(owner_id, ws)
 
 
 manager = ConnectionManager()

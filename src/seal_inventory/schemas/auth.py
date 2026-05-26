@@ -10,7 +10,8 @@ class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     username: str
-
+    owner_id: str
 
 class MeResponse(BaseModel):
     username: str
+    owner_id: str

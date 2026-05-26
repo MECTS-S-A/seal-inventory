@@ -16,7 +16,7 @@ def get_current_user(token=Depends(security)):
 
         return {
             "username": payload["sub"],
-            "owner_id": payload["owner_id"],
+            "owner_token": payload["owner_token"],
         }
 
     except Exception:

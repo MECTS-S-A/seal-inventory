@@ -23,18 +23,18 @@ def login(data: LoginRequest):
             detail="Invalid credentials",
         )
 
-    owner_id = str(uuid4())
+    owner_token = str(uuid4())
 
     token = create_access_token(
         username=data.username,
-        owner_id=owner_id,
+        owner_token=owner_token,
     )
 
     return {
         "access_token": token,
         "token_type": "bearer",
         "username": data.username,
-        "owner_id": owner_id,
+        "owner_token": owner_token,
     }
 
 @auth_router.get("/me", response_model=MeResponse)

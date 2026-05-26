@@ -6,11 +6,11 @@ import os
 
 def create_access_token(
         username: str,
-        owner_id: str,
+        owner_token: str,
 ):
     payload = {
         "sub": username,
-        "owner_id": owner_id,
+        "owner_token": owner_token,
         "exp": datetime.utcnow() + timedelta(hours=1),
     }
 

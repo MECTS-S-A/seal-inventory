@@ -87,16 +87,23 @@ async def create_transfer(
         user=Depends(get_current_user),
         service: NetsealService = Depends(get_service),
 ):
-    transfer_id = await service.create_transfer(
-        payload,
-        user,
-    )
+    try:
+        transfer_id = await service.create_transfer(
+            payload,
+            user,
+        )
 
-    return {
-        "id": transfer_id,
-        "status": "pending",
-    }
+        return {
+            "id": transfer_id,
+            "status": "pending",
+        }
 
+    except Exception as e:
+        print("TRANSFER ERROR:", str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=str(e),
+        )
 
 @router.patch("/transfers/{transfer_id}/confirm")
 async def confirm_transfer(

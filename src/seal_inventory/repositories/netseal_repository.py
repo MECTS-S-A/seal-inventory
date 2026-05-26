@@ -111,6 +111,10 @@ class NetsealRepository:
             self,
             payload,
             sender_username: str,
+            origin_site_id: str,
+            origin_location: str,
+
+
     ):
         query = """
                 INSERT INTO asset.transfers (
@@ -139,10 +143,13 @@ class NetsealRepository:
             cursor.execute(
                 query,
                 ",".join(payload.net_ids),
-                payload.origin_site_id,
-                payload.origin_location,
+
+                origin_site_id,
+                origin_location,
+
                 payload.destination_site_id,
                 payload.destination_location,
+
                 sender_username,
             )
 
@@ -221,7 +228,6 @@ class NetsealRepository:
                 """
 
         with get_inventory_connection() as conn:
-
             cursor = conn.cursor()
 
             cursor.execute(query, net_id)
@@ -229,7 +235,9 @@ class NetsealRepository:
             row = cursor.fetchone()
 
             if not row:
-                raise ValueError("Net seal not found")
+                raise ValueError(
+                    f"Net seal {net_id} not found"
+                )
 
             return {
                 "owner_id": str(row[0]),

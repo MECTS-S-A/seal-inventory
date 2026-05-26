@@ -50,11 +50,11 @@ class NetsealService:
             payload.net_ids[0]
         )
 
-        payload.origin_site_id = origin["owner_id"]
-
         transfer_id = self.repo.create_transfer(
-            payload,
-            sender_username,
+            payload=payload,
+            sender_username=sender_username,
+            origin_site_id=origin["owner_id"],
+            origin_location=origin["owner_region"],
         )
 
         await manager.send_to_owner(

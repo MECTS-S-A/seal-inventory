@@ -46,6 +46,11 @@ class NetsealService:
             payload,
             sender_username,
     ):
+        # if isinstance(sender_username, dict):
+        #     sender_username = sender_username.get(
+        #         "username"
+        #     )
+
         origin = self.repo.get_owner_by_net(
             payload.net_ids[0]
         )

@@ -118,15 +118,15 @@ class NetsealRepository:
     ):
         query = """
                 INSERT INTO asset.transfers (
-                    NET_IDS,
-                    ORIGIN_SITE_ID,
-                    ORIGIN_LOCATION,
-                    DESTINATION_SITE_ID,
-                    DESTINATION_LOCATION,
-                    SENDER_USERNAME,
-                    STATUS,
-                    CREATED,
-                    UPDATED
+                    net_ids,
+                    origin_site_id,
+                    origin_location,
+                    destination_site_id,
+                    destination_location,
+                    sender_username,
+                    status,
+                    created_at,
+                    updated_at
                 )
                     OUTPUT INSERTED.ID
                 VALUES (
@@ -169,9 +169,9 @@ class NetsealRepository:
                 UPDATE asset.transfers
                 SET
                     STATUS='confirmed',
-                    RECEIVER_USERNAME=?,
-                    UPDATED=GETDATE()
-                WHERE ID=? \
+                    receiver_username=?,
+                    updated_at=GETDATE()
+                WHERE id=? \
                 """
 
         with get_inventory_connection() as conn:
@@ -194,10 +194,10 @@ class NetsealRepository:
         query = """
                 UPDATE asset.transfers
                 SET
-                    STATUS='rejected',
-                    RECEIVER_USERNAME=?,
-                    REASON=?,
-                    UPDATED=GETDATE()
+                    status='rejected',
+                    receiver_username=?,
+                    reason=?,
+                    updated_at=GETDATE()
                 WHERE ID=? \
                 """
 

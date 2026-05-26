@@ -90,7 +90,7 @@ async def create_transfer(
     try:
         transfer_id = await service.create_transfer(
             payload,
-            user,
+            user["username"],
         )
 
         return {

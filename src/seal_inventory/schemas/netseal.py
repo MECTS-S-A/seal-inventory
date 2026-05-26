@@ -41,8 +41,8 @@ class NetsealStatsResponse(BaseModel):
 class TransferCreateRequest(BaseModel):
     net_ids: list[str]
 
-    origin_site_id: str
-    origin_location: str
+    # origin_site_id: str
+    # origin_location: str
 
     destination_site_id: str
     destination_location: str

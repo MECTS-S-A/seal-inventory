@@ -46,19 +46,25 @@ class NetsealService:
             payload,
             sender_username,
     ):
+        origin = self.repo.get_owner_by_net(
+            payload.net_ids[0]
+        )
+
+        payload.origin_site_id = origin["owner_id"]
+
         transfer_id = self.repo.create_transfer(
             payload,
             sender_username,
         )
 
-        await manager.send_to_site(
+        await manager.send_to_owner(
             payload.destination_site_id,
             {
                 "type": "TRANSFER_INCOMING",
                 "transfer_id": transfer_id,
                 "net_ids": payload.net_ids,
                 "sender": sender_username,
-                "from": payload.origin_site_id,
+                "from": origin["owner_id"],
             },
         )
 
@@ -69,9 +75,22 @@ class NetsealService:
             transfer_id,
             receiver_username,
     ):
+        transfer = self.repo.get_transfer(
+            transfer_id
+        )
+
         self.repo.confirm_transfer(
             transfer_id,
             receiver_username,
+        )
+
+        await manager.send_to_owner(
+            str(transfer["ORIGIN_SITE_ID"]),
+            {
+                "type": "TRANSFER_UPDATE",
+                "transfer_id": transfer_id,
+                "action": "confirmed",
+            },
         )
 
     async def reject_transfer(
@@ -80,8 +99,22 @@ class NetsealService:
             receiver_username,
             reason,
     ):
+        transfer = self.repo.get_transfer(
+            transfer_id
+        )
+
         self.repo.reject_transfer(
             transfer_id,
             receiver_username,
             reason,
+        )
+
+        await manager.send_to_owner(
+            str(transfer["ORIGIN_SITE_ID"]),
+            {
+                "type": "TRANSFER_UPDATE",
+                "transfer_id": transfer_id,
+                "action": "rejected",
+                "reason": reason,
+            },
         )

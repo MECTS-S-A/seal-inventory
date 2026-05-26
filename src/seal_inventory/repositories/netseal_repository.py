@@ -205,3 +205,59 @@ class NetsealRepository:
             )
 
             conn.commit()
+
+
+    def get_owner_by_net(
+            self,
+            net_id: str,
+    ):
+        query = """
+                SELECT TOP 1
+        OWNER_ID,
+                    OWNER_NAME,
+                       OWNER_REGION
+                FROM asset.net_inventory
+                WHERE NET_ID = ? \
+                """
+
+        with get_inventory_connection() as conn:
+
+            cursor = conn.cursor()
+
+            cursor.execute(query, net_id)
+
+            row = cursor.fetchone()
+
+            if not row:
+                raise ValueError("Net seal not found")
+
+            return {
+                "owner_id": str(row[0]),
+                "owner_name": row[1],
+                "owner_region": row[2],
+            }
+
+    def get_transfer(
+            self,
+            transfer_id: int,
+    ):
+        query = """
+                SELECT *
+                FROM asset.transfers
+                WHERE ID = ? \
+                """
+
+        with get_inventory_connection() as conn:
+
+            cursor = conn.cursor()
+
+            cursor.execute(query, transfer_id)
+
+            row = cursor.fetchone()
+    
+            if not row:
+                return None
+
+            columns = [c[0] for c in cursor.description]
+
+            return dict(zip(columns, row))

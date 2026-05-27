@@ -1,5 +1,9 @@
 from ldap3 import Server, Connection
 import os
+from ldap3 import Server
+from ldap3 import Connection
+from ldap3 import SUBTREE
+import os
 
 
 class AuthService:
@@ -25,3 +29,47 @@ class AuthService:
                 continue
 
         return False
+
+
+
+
+
+    def get_users(self):
+
+        server = Server(
+            os.getenv("LDAP_SERVER")
+        )
+
+        conn = Connection(
+            server,
+            user=os.getenv("LDAP_BIND_USER"),
+            password=os.getenv("LDAP_BIND_PASSWORD"),
+            auto_bind=True,
+        )
+
+        conn.search(
+            search_base=os.getenv("LDAP_BASE_DN"),
+            search_filter="(&(objectClass=user))",
+            search_scope=SUBTREE,
+            attributes=[
+                "displayName",
+                "sAMAccountName",
+            ],
+        )
+
+        users = []
+
+        for entry in conn.entries:
+
+            users.append(
+                {
+                    "username": str(
+                        entry.sAMAccountName
+                    ),
+                    "name": str(
+                        entry.displayName
+                    ),
+                }
+            )
+
+        return users

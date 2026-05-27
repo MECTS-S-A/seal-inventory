@@ -1,7 +1,5 @@
 from seal_inventory.repositories.netseal_repository import NetsealRepository
-from typing import List
 from seal_inventory.websocket_manager import manager
-
 
 
 class NetsealService:
@@ -18,8 +16,10 @@ class NetsealService:
 
     def get(self, id):
         data = self.repo.get_by_id(id)
+
         if not data:
             raise ValueError("Netseal not found")
+
         return data
 
     def update(self, id, data, user):
@@ -57,56 +57,57 @@ class NetsealService:
             origin_location=origin["owner_region"],
         )
 
-        # Notify destination
-        await manager.send_to_owner(
-            payload.destination_site_id,
+        # Notify receiver
+        await manager.send_to_user(
+            payload.receiver_username,
             {
                 "type": "TRANSFER_INCOMING",
                 "transfer_id": transfer_id,
-                "net_ids": payload.net_ids,
                 "sender": sender_username,
-                "origin_owner_id": origin["owner_id"],
-                "origin_name": origin["owner_name"],
+                "receiver": payload.receiver_username,
+                "net_ids": payload.net_ids,
+                "origin_site_id": origin["owner_id"],
+                "origin_location": origin["owner_region"],
+                "destination_site_id": payload.destination_site_id,
+                "destination_location": payload.destination_location,
             },
         )
 
         # Notify sender
-        await manager.send_to_owner(
-            origin["owner_id"],
+        await manager.send_to_user(
+            sender_username,
             {
                 "type": "TRANSFER_CREATED",
                 "transfer_id": transfer_id,
+                "receiver": payload.receiver_username,
                 "net_ids": payload.net_ids,
-                "destination_owner_id": payload.destination_site_id,
-                "sender": sender_username,
             },
         )
 
         return transfer_id
-
 
     async def confirm_transfer(
             self,
             transfer_id,
             receiver_username,
     ):
-        if isinstance(receiver_username, dict):
-            receiver_username = receiver_username["username"]
-
         transfer = self.repo.get_transfer(
             transfer_id
         )
 
         if not transfer:
-            raise ValueError("Transfer not found")
+            raise ValueError(
+                "Transfer not found"
+            )
 
         self.repo.confirm_transfer(
             transfer_id,
             receiver_username,
         )
 
-        await manager.send_to_owner(
-            str(transfer["origin_site_id"]),
+        # Notify sender
+        await manager.send_to_user(
+            transfer["sender_username"],
             {
                 "type": "TRANSFER_CONFIRMED",
                 "transfer_id": transfer_id,
@@ -114,12 +115,12 @@ class NetsealService:
             },
         )
 
-        await manager.send_to_owner(
-            str(transfer["destination_site_id"]),
+        # Notify receiver
+        await manager.send_to_user(
+            receiver_username,
             {
                 "type": "TRANSFER_RECEIVED",
                 "transfer_id": transfer_id,
-                "receiver": receiver_username,
             },
         )
 
@@ -129,15 +130,14 @@ class NetsealService:
             receiver_username,
             reason,
     ):
-        if isinstance(receiver_username, dict):
-            receiver_username = receiver_username["username"]
-            
         transfer = self.repo.get_transfer(
             transfer_id
         )
 
         if not transfer:
-            raise ValueError("Transfer not found")
+            raise ValueError(
+                "Transfer not found"
+            )
 
         self.repo.reject_transfer(
             transfer_id,
@@ -145,8 +145,9 @@ class NetsealService:
             reason,
         )
 
-        await manager.send_to_owner(
-            str(transfer["origin_site_id"]),
+        # Notify sender
+        await manager.send_to_user(
+            transfer["sender_username"],
             {
                 "type": "TRANSFER_REJECTED",
                 "transfer_id": transfer_id,
@@ -155,8 +156,9 @@ class NetsealService:
             },
         )
 
-        await manager.send_to_owner(
-            str(transfer["destination_site_id"]),
+        # Notify receiver
+        await manager.send_to_user(
+            receiver_username,
             {
                 "type": "TRANSFER_REJECTION_SENT",
                 "transfer_id": transfer_id,

@@ -126,6 +126,15 @@ async def create_transfer(
             detail=str(e),
         )
 
+@router.get("/transfers/my")
+def my_transfers(
+        user=Depends(get_current_user),
+        service: NetsealService = Depends(get_service),
+):
+    return service.get_user_transfers(
+        user["username"]
+    )
+
 
 @router.patch("/transfers/{transfer_id}/confirm")
 async def confirm_transfer(

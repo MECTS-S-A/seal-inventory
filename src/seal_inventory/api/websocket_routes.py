@@ -7,31 +7,24 @@ from seal_inventory.websocket_manager import manager
 router = APIRouter()
 
 
-@router.websocket("/ws/{owner_id}")
+@router.websocket("/ws/{username}")
 async def websocket_endpoint(
         websocket: WebSocket,
-        owner_id: str,
+        username: str,
 ):
-    await manager.connect(
-        owner_id,
+    await manager.connect_user(
+        username,
         websocket,
     )
 
     try:
+
         while True:
-
-            message = await websocket.receive_text()
-
-            if message == "ping":
-                await websocket.send_json(
-                    {
-                        "type": "pong"
-                    }
-                )
+            await websocket.receive_text()
 
     except WebSocketDisconnect:
 
-        manager.disconnect(
-            owner_id,
+        manager.disconnect_user(
+            username,
             websocket,
         )

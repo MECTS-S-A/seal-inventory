@@ -113,8 +113,6 @@ class NetsealRepository:
             sender_username: str,
             origin_site_id: str,
             origin_location: str,
-
-
     ):
         query = """
                 INSERT INTO asset.transfers (
@@ -124,13 +122,14 @@ class NetsealRepository:
                     destination_site_id,
                     destination_location,
                     sender_username,
+                    receiver_username,
                     status,
                     created_at,
                     updated_at
                 )
-                    OUTPUT INSERTED.ID
+                    OUTPUT INSERTED.id
                 VALUES (
-                    ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?, ?, ?,
                     'pending',
                     GETDATE(),
                     GETDATE()
@@ -138,10 +137,12 @@ class NetsealRepository:
                 """
 
         with get_inventory_connection() as conn:
+
             cursor = conn.cursor()
 
             cursor.execute(
                 query,
+
                 ",".join(payload.net_ids),
 
                 origin_site_id,
@@ -151,6 +152,7 @@ class NetsealRepository:
                 payload.destination_location,
 
                 sender_username,
+                payload.receiver_username,
             )
 
             transfer_id = cursor.fetchone()[0]
@@ -158,7 +160,6 @@ class NetsealRepository:
             conn.commit()
 
             return transfer_id
-
 
     def confirm_transfer(
             self,
@@ -269,3 +270,62 @@ class NetsealRepository:
             columns = [c[0] for c in cursor.description]
 
             return dict(zip(columns, row))
+
+    def get_transfer(
+            self,
+            transfer_id: int,
+    ):
+        query = """
+                SELECT *
+                FROM asset.transfers
+                WHERE id = ? \
+                """
+
+        with get_inventory_connection() as conn:
+
+            cursor = conn.cursor()
+
+            cursor.execute(
+                query,
+                transfer_id,
+            )
+
+            row = cursor.fetchone()
+
+            if not row:
+                return None
+
+            columns = [
+                col[0].lower()
+                for col in cursor.description
+            ]
+
+            return dict(
+                zip(columns, row)
+            )
+
+
+    def get_user_transfers(
+            self,
+            username: str,
+    ):
+        query = """
+                SELECT *
+                FROM asset.transfers
+                WHERE receiver_username = ?
+                ORDER BY created_at DESC \
+                """
+
+        with get_inventory_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(query, username)
+
+            columns = [
+                col[0].lower()
+                for col in cursor.description
+            ]
+
+            return [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]

@@ -20,15 +20,24 @@ def get_service():
     return NetsealService()
 
 
+# =====================================================
+# NETSEAL CRUD
+# =====================================================
+
 @router.post("/")
 def create(
         data: NetsealCreate,
         user=Depends(get_current_user),
         service: NetsealService = Depends(get_service),
 ):
-    service.create(data.dict(), user)
+    service.create(
+        data.dict(),
+        user["username"],
+    )
 
-    return {"message": "Created"}
+    return {
+        "message": "Created"
+    }
 
 
 @router.get("/")
@@ -63,10 +72,12 @@ def update(
     service.update(
         id,
         data.dict(),
-        user,
+        user["username"],
     )
 
-    return {"message": "Updated"}
+    return {
+        "message": "Updated"
+    }
 
 
 @router.delete("/{id}")
@@ -76,10 +87,14 @@ def delete(
 ):
     service.delete(id)
 
-    return {"message": "Deleted"}
+    return {
+        "message": "Deleted"
+    }
 
 
-#Transfer Routes
+# =====================================================
+# TRANSFERS
+# =====================================================
 
 @router.post("/transfers")
 async def create_transfer(
@@ -88,6 +103,7 @@ async def create_transfer(
         service: NetsealService = Depends(get_service),
 ):
     try:
+
         transfer_id = await service.create_transfer(
             payload,
             user["username"],
@@ -99,11 +115,17 @@ async def create_transfer(
         }
 
     except Exception as e:
-        print("TRANSFER ERROR:", str(e))
+
+        print(
+            "TRANSFER ERROR:",
+            str(e),
+        )
+
         raise HTTPException(
             status_code=500,
             detail=str(e),
         )
+
 
 @router.patch("/transfers/{transfer_id}/confirm")
 async def confirm_transfer(
@@ -111,14 +133,29 @@ async def confirm_transfer(
         user=Depends(get_current_user),
         service: NetsealService = Depends(get_service),
 ):
-    await service.confirm_transfer(
-        transfer_id,
-        user,
-    )
+    try:
 
-    return {
-        "success": True
-    }
+        await service.confirm_transfer(
+            transfer_id,
+            user["username"],
+        )
+
+        return {
+            "success": True,
+            "status": "confirmed",
+        }
+
+    except Exception as e:
+
+        print(
+            "CONFIRM ERROR:",
+            str(e),
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e),
+        )
 
 
 @router.patch("/transfers/{transfer_id}/reject")
@@ -128,12 +165,27 @@ async def reject_transfer(
         user=Depends(get_current_user),
         service: NetsealService = Depends(get_service),
 ):
-    await service.reject_transfer(
-        transfer_id,
-        user,
-        payload.reason,
-    )
+    try:
 
-    return {
-        "success": True
-    }
+        await service.reject_transfer(
+            transfer_id,
+            user["username"],
+            payload.reason,
+        )
+
+        return {
+            "success": True,
+            "status": "rejected",
+        }
+
+    except Exception as e:
+
+        print(
+            "REJECT ERROR:",
+            str(e),
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e),
+        )

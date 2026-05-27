@@ -40,3 +40,8 @@ def login(data: LoginRequest):
 @auth_router.get("/me", response_model=MeResponse)
 def get_me(user=Depends(get_current_user)):
     return {"username": user}
+
+@auth_router.get("/ldap-users")
+def ldap_users():
+
+    return auth_service.get_users()

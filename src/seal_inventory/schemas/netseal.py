@@ -44,6 +44,7 @@ class TransferCreateRequest(BaseModel):
     destination_site_id: str
     destination_location: str
 
+    receiver_username: str
 
 class TransferConfirmRequest(BaseModel):
     transfer_id: int

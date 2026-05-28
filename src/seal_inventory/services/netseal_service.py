@@ -68,6 +68,7 @@ class NetsealService:
                 "net_ids": payload.net_ids,
                 "origin_site_id": origin["owner_id"],
                 "origin_location": origin["owner_region"],
+                "origin_name": origin["owner_name"],
                 "destination_site_id": payload.destination_site_id,
                 "destination_location": payload.destination_location,
             },
